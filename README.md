@@ -1,0 +1,528 @@
+
+
+# Prerequisites
+
+To prepare, please do the following. It's a bit annoying, but you only have to do it once.
+
+1. install `git` on your machine
+	1. For Windows users: Install git bash (https://gitforwindows.org)
+    1. For Mac users: Install git via homebrew ([http://git-scm.com/about](http://git-scm.com/about))
+    1. For Linux users: Install via your favorite means ([http://git-scm.com/about](http://git-scm.com/about))
+2. Create an account on www.github.com
+3. configure your git locally, so people online can see who made the changes:
+
+```bash
+git config --global user.name "Your name"  
+git config --global user.email "your@email.de"
+```
+
+4. On github.com create a new token: Go to Settings -> Developer Settings -> Personal access tokens --> Tokens (classic) --> Generate new token (classic)
+
+Simply put 'git workshop' as note, and give it an expiration time of 30 days. Click on the `repo` checkbox. Copy the generated token and store it safely. Don't worry, if you lose it you can create a new one.
+
+---
+
+# what are we gonna do today?
+
+1. explain git and github
+2. a little hands-on workshop for the most important aspects: committing, branching, merging, pushing
+3. set up a git repository in your own code
+
+**Note:** I will focus on using the command line, which might be a bit intimidating at first. You can also work with a user interface if you want. But the slides are for the command line, because then they can be used by everyone whereas with specific tools, everything works a bit different. I also think it is good to do it at least once this way, to really know what is going on.
+
+---
+# git vs github
+
+- git: version control system:
+	- software that runs on your computer [http://git-scm.com/about](http://git-scm.com/about)
+- github/gitlab:
+	- online tool
+		- "version control interface" or "continuous integration (CI) server"
+		- visualizes a git repository
+		- online backup of you code
+		- collaborate with other (comment, raise issues)
+		- run pipelines on the code (testing, formatting, ...)
+
+---
+# a visualization of a local git workflow
+
+
+![](attachments/commits.png)
+
+- dots: **commits**
+- series of commits: **branches**
+- dashed dot: **merge commit**
+
+>After three **commits** on the **branch** "main" a **new branch** (called "feature") is created. Three **commits** are done on the **new branch**. In the meantime, two commits are done on the lower branch. Then, the top branch is **merged** into the lower branch, creating a **merge commit** (dashed dot). The lower branch now contains the merged code from both branches (blue + yellow = green). Finally, another commit is done on the lower branch. The upper branch does not exist anymore.
+
+---
+# why is this useful?
+
+1. backup of your code online (with version history!)
+2. go back in time with your code
+3. see exactly what change, when, and why
+4. store multiple version of the code (try out different approaches)
+5. collaborate with others
+
+---
+# demonstration in my IDE (integrated developer environment)
+
+An IDE is where you normally develop your code, like VS Code, CLion, or RStudio. They all have version control tooling and you can:
+
+- showing the log of commits
+- going back in time
+- showing current changes
+- diffing files
+
+
+---
+# Preparation step: forking a repository
+
+This step creates your own copy of the repository on Github. You can then mess with it as much as you want, and push it back to the web without messing with anyone else's stuff.
+So as a first step, create your own `fork` of this repository: In your browser, click the Fork button:
+
+![](attachments/fork.png)
+
+You can keep all the settings:
+
+![](attachments/fork2.png)
+
+Now, there's your unique copy of our workshop in your github account, residing at `https://github.com/<YOUR_GITHUB_USERNAME>/git-workshop`
+
+---
+# Let's start: cloning an existing repository
+
+Now we are going to start for real. The first step is cloning the workshop repository (actually, your fork of it), and messing around with it. So please execute the following command (put your Github username in the URL):
+
+```
+git clone https://github.com/<YOUR_GITHUB_USERNAME>/git-workshop.git
+```
+
+This downloads the repository onto your computer, into the current directory.
+
+**Note:** for some windows users, it's apparently necessary to adapt the command above to this (i.e., remove the '.git' at the end):
+```
+git clone https://github.com/<YOUR_GITHUB_USERNAME>/git-workshop
+```
+
+---
+
+# seeing the files
+
+Now let's see what happened after the clone command. Use the terminal (or the explorer) to verify:
+
+- a new directory was created on your computer, `git-workshop`
+- use the explorer (or terminal) to see which files are contained
+	- You'll for instance see a `README.md` file (that's the file you're reading right now)
+	- There should also be a `workshopfile.txt`
+- do not worry about a `.git` directory for now (in case you see that)
+
+**Note:** For those unfamiliar with the command line, `pwd` shows the directory that you're in. `cd <DIRECTORY>` changes directories, `ls` lists the files and directories.
+
+---
+
+# checking the status of the files and editing them
+
+Let's first check the status of the local copy of the repository:
+```
+git status
+```
+You should see this message:
+```bash
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+```
+So, you see that you're on branch a branch called `main` and that it is up to date. Up to date with what? With `origin`. What's that? Well, `origin` is the name of the `remote`. Huh?? It's simple: the `remote` is the "online copy" of your repository that (in this case) is stored on GitHub. We could give this remote another name, but `origin` is the standard. Honestly, you'll likely never have to deal with different remotes. For now, just remember that a `remote` is a online copy (or backup) of your code, and the default `remote` is called `origin`
+
+---
+
+# editing files and checking status
+
+Now, let's edit the file called `workshopfile.txt`. Add your favorite Backstreet's boys song text, your favorite joke, or simply let your cat walk over the keyboard: `asdfaisdgisudfhgkjsdfgkjadfg`.
+
+Save that file and run `git status` again:
+
+```shell
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   workshopfile.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+```
+
+Aha! It tells us that `workshopfile.txt` was modified! That's good!
+But wait, why does it tell us that we're still `up to date`? Well, because these changes are not `staged for commit`. We will learn what that means later. For now, Let's be happy that `git` saw that we modified the file.
+
+---
+# seeing the changes
+
+So now let's see what actually changed! For this we can use the command
+```bash
+git diff
+```
+
+The output should be something like this:
+![](attachments/gitdiff.png)
+
+Don't worry about the stuff you don't understand from that output. But you should be able to see what changes were done to a file. This is already a huge benefit of `git`.
+
+Now there are two options:
+1. we are happy with the changes and certain we want to keep them
+2. we are unhappy with the changes, and want to replace the Backstreet Boys text with Taylor Swift text
+
+You probably guessed it, I'd much rather go for Taylor than Nick Carter and his friends. So let's undo the changes!! How do we do that?
+
+---
+# undoing unwanted changes
+
+Let's undo the Backstreet Boys test. One way of course, would be to go into the file, and change everything back to the way it was. This might be possible here, but think about a large project! `git` offers the easy solution to that:
+```
+git checkout workshopfile.txt
+```
+
+`checkout`, that's a weird way to say `undo`!  Well, it means that we want to check out the file at exactly the current commit. And since nothing was committed by us so far (we'll do that in a few minutes), this means we'll get the file in its state that it was when we downloaded it:
+```
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+```
+
+Yup, everything back to normal.
+
+---
+# committing desired changes
+
+So now let's add some high quality music text in that file (or whatever you like).
+Check again `git status` and `git diff`
+
+![](attachments/gitidff2.png)
+
+Yes, these are the changes we want to keep! So let's do that. It is a two-step process.
+
+1. Add desired changes to the `staging area`
+2. Commit the changes
+
+Ready? Let's go!
+
+---
+# adding to staging area
+
+Let's look at `git status` quickly:
+
+![](attachments/gitstatusnotstaged.png)
+
+Aha! There are changes `not staged for commit`. So let's stage them!
+```
+git add workshopfile.txt
+```
+
+What happened to `git status`?
+
+![](attachments/gitstatusstaged.png)
+
+There we go! Our changes can be committed!!
+
+Note: if you have many edited files, you can add them with `git add .` (note the dot! It means "current directory")
+
+---
+# committing changes
+
+```
+git commit -m "I added my favorite Taylor Swift songtext"
+```
+
+Let's see what `git status` tells us now:
+
+![](attachments/gitstatuscommitted.png)
+
+Perfect. We have created a new commit, and we're **ahead of the online copy** now. The commit only exists locally!. But of course, we want to back this up online! So let's do that now!
+
+---
+
+
+# pushing local changes to the internet
+
+To get your local changes backed up online you need one simple command: `git push`
+Now you will be asked to put your username and password. But probably this won't work for you and you see this:
+
+![](attachments/pushreject.png)
+
+This is because you have to put your **token** there, not your password. I know, this is all super confusing, But once it's set up, it works (see prerequisite steps above)!
+
+Trying again `git push` with username and token:
+
+![](attachments/push.png)
+
+If you go to your repository on Github, you will also see your changes there! So your code is backed up =)
+
+---
+# checking the history of the repository
+Now let's see what has happened in this repository.
+Run:
+```bash
+git log
+```
+
+You should see your last commit, and the ones that I have done to this repository previously.
+**Note:** use `q` to get out of the log.
+
+---
+# quick recap
+
+Before we go to different topics, let's recap the commands we learned so far:
+
+- clone
+- status
+- diff
+- checkout
+- add
+- commit
+- push
+
+---
+# branching
+
+Now we're getting to another key concept of git, **branching**
+![](attachments/commits.png)
+
+
+In our workshop, we're currently on the **main** branch. There are some commits by me, and the one that you just did. The repository looks something like this, there are no branches yet, just a few commits:
+
+![](attachments/commits_main_only.png)
+
+---
+
+# creating a new branch
+
+Say we now want to work on a new feature of our code. If you work by yourself, you don't need to create a new branch for this, but it can be helpful. Maybe you want to try out two different methods. Branching allows you to have to different states of your code simultaneously.
+This is especially important when collaborating with other people. Everyone can have their own branch, and thus does not mess with the code of the others.
+
+We now create a branch by running this command:
+
+```
+git checkout -b adele_is_also_cool
+```
+
+Now, run `git status` to verify that you're on the new branch.
+
+---
+# creating a new file and committing it
+
+This is your task now: create a new text file called `adele.txt`, write some Adele lyrics into it, add it to the staging environment, and commit it.
+You should be able to see that everything worked using `git status` and `git log`.
+
+This is how the repository looks like:
+
+![](attachments/commits_main_adele.png)
+
+# switching branches
+
+Take a look at the file structure now. There is `workshopfile.txt` and there is `adele.txt`. And of course, the `README.md` and the `attachments`. Git status tells us we're on the `adele_is_also_cool` branch.
+
+Now, lets switch branches back to **main**:
+
+```
+git checkout main
+```
+
+Remember what `checkout` means? It gives you the state of all files of a particular version of the code, in this case, from the `main` branch. What do you think will happen to the `adele.txt` file?
+
+---
+# where is adele?
+
+Well, Adele is gone! The file `adele.txt` **only** exists on the `adele_is_also_cool` branch, not on the `main` branch! You see that the two branches are separate states of the code! So now you can imagine how two people can work on quite different stuff at the same time without interfering with one another.
+
+Using `git checkout main` and `git checkout adele_is_also_cool` you can switch between the branches, and see the `adele.txt` file disappear and come back again. Pro-hacker tip: `git checkout -` bring you to the last branch you were on.
+
+But now, how do we get Adele into the main branch?
+
+With another core concept of `git`: **merging**
+
+---
+# merging
+
+Run the following command, **but** make sure you're actually on the `main` branch (use `git status`)
+
+```
+git checkout main
+git merge adele_is_also_cool (<-- the BRANCH name)
+```
+
+This merges the content of the `adele_is_also_cool` into the `main` branch. The repository will look like this:
+
+![](attachments/commits_main_adele_merged.png)
+
+
+Check out `git log`! A new commit was added! A so-called **merge commit**.
+
+Check out `git status`! We're still on the `main` branch!
+
+Check out the files! Both `workshopfile.txt` and `adele.txt` are there!
+
+
+
+---
+
+# editing files in multiple branches
+
+Adding a file in a different branch is a simple situation. Where it gets interesting is when the a file is edited that exists on multiple branches. In theory, it works the same. But, what happens when the file is edited in both branches?
+
+##### Your task
+1. Create a new branch called `britney`. Edit the `adele.txt` file. Write in "Hit me baby, one more time"
+2. Add and commit the changes.
+3. Switch to `main` branch
+	1. check `git status`, there should be no changes to be committed!
+	2. (note: non-committed but staged changes are moved between branches!)
+4. Edit the `adele.txt` file. 
+	1. Check that the Britney line is not in there
+	2. Write in "I'm a genie in a bottle"
+5. Add and commit the changes.
+
+The repository looks something like this (I ignored the previous merging of the Adele branch):
+
+![](attachments/commits_main_adele_britney.png)
+
+You can again switch between the branches `main` and `britney` and see the content of the file change! Just like previously, when the file appeared and disappeared, depending on the branch.
+
+---
+
+# merge conflicts
+
+Now, try to merge again the two branches (make sure you're on the `main` branch)
+
+```
+git merge britney
+```
+
+Whoopsie, that did not work! Both branches had edits to the `adele.txt` file. `git` did not know how to handle that.
+```
+Auto-merging workshopfile.txt
+CONFLICT (content): Merge conflict in workshopfile.txt
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+This is a so-called **merge conflict**.
+Note: In many cases, git **does** know how to handle that. But sometimes, like here, you need to tell it what to do.
+So you will take a look at the file, and keep only those lines that you want
+
+# resolving the merge conflict
+
+Let's look at the file that could not be merged (`adele.txt`). You should see something like this:
+
+```
+<<<<<<< HEAD
+I'm a genie in a bottle
+=======
+Hit me baby, one more time
+>>>>>>> britney
+```
+
+This tells you: on HEAD (your current position in the repository), there is the line "I'm a genie in a bottle". But coming from the `britney` branch, there is also the line "Hit me baby, one more time".
+Now imagine this is code: you will have to decide which changes to your code make sense. You could keep both, or only one, or none of them, as you desire! The weird lines (`<<<<`, `====`, and `>>>>`) are from git, and are used by graphical user interfaces to make merging easier than doing on the command line. But here we will just do that.
+I will keep both lines and change the files so that it looks like this (removing the git-lines):
+```
+I'm a genie in a bottle
+Hit me baby, one more time
+```
+
+Save the file. Check `git status`. It tells you you're still `unmerged` 
+
+![](attachments/unmerged_paths.png)
+
+Since we resolved the conflict, we can now add `adele.txt`
+```
+git add adele.txt
+```
+
+What is the status now?
+
+![](attachments/merge_resolved.png)
+
+
+So, we need to conclude the merge with
+```
+git commit
+```
+
+It will open an editor asking you for the commit message (Note, for some people, this will open the editor `vim` which is very complex. You exit `vim` by typing `:wq`).
+
+The repository looks like this now (check `git log` to see the merge commit)
+
+![](attachments/commits_adele_britney_merged.png)
+
+
+# recap
+
+Wow! You did a lot already! Let's recap what we did
+
+- branch
+- checkout
+- add
+- commit
+- merge
+- merge conflicts
+
+Note: there are MANY other things (like undoing commits), but we don't have the time...
+
+# setting up a git repository in your code
+
+Now, let's make your code a git repository! This is very simple! Just go into the directory and type:
+
+```
+git init
+```
+
+--- 
+
+# adding files to the repository and committing them
+
+You know how to do that! Select some files that you want to put into version control, add, and commit them!
+
+---
+
+# setting up an online version control with github and backing up your code
+
+- Log in to www.github.com
+- Create new repository
+- Follow the steps to push the code, something like this:
+	- **Note**: use public repository
+	- **Note**: use HTTPS in the setup
+
+```
+git remote add origin https://github.com/<YOUR GITHUB NAME>/<YOUR GITHUB REPO NAME>.git
+```
+
+Remember what `remote` meant? And `origin`?
+
+```
+git push -u origin main
+```
+
+
+From now on, you can simply write
+
+```
+git push
+```
+
+Whenever you have new code committed, and it's backed up!
+
+---
+
+# final remarks
+
+- There are many more features to git, but these are the most important ones, the one that you should definitely know in addition is `git revert`
+- As a best practice, commit often and in logical steps, don't just always add all changes! That makes is easy to find buts, and ensures that everything is backed up timely.
+- Set up git in your IDE (RStudio etc.)
+- If you'd like more workshops like this, please go to my website, we offer such courses for many topics for scientific groups: https://www.konstantin-gregor.com
+- Our recent paper has tips on other great tools that can help make code better: https://gmd.copernicus.org/articles/19/2407/2026/
+- If you need a break, please also check out my science parody youtube channel: https://www.youtube.com/@scienceparodysongs
+
+![](attachments/qrs.png)
